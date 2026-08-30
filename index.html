@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EDEN X | 과학·사회 Voca</title>
+<style>
+  :root {
+    --navy: #0d2340; --navy-mid: #1a3a5c; --navy-light: #234870;
+    --gold: #c9a24b; --gold-light: #e8c97a; --gold-pale: #f5e9c8;
+    --white: #ffffff; --gray-100: #f4f6f9; --gray-200: #e2e8f0;
+    --gray-400: #94a3b8; --gray-600: #64748b;
+    --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --blue: #3b82f6;
+    --radius-lg: 20px; --radius-md: 12px; --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(13,35,64,0.13);
+    --shadow-card: 0 8px 40px rgba(13,35,64,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  a, button { touch-action: manipulation; }
+  body { font-family: 'Noto Sans KR','Apple SD Gothic Neo',sans-serif; background: var(--navy); min-height: 100vh; color: var(--white); overflow-x: hidden; }
+  .screen { display:none; flex-direction:column; min-height:100vh; }
+  .screen.active { display:flex; }
+  .btn { padding:14px 28px; border:none; border-radius:var(--radius-md); font-size:16px; font-weight:700; cursor:pointer; transition:all .2s; letter-spacing:.03em; }
+  .btn-gold { background:var(--gold); color:var(--navy); }
+  .btn-gold:hover { background:var(--gold-light); transform:translateY(-1px); }
+  .btn-outline { background:transparent; border:2px solid var(--gold); color:var(--gold); }
+  .btn-outline:hover { background:var(--gold); color:var(--navy); }
+  .btn-sm { padding:9px 18px; font-size:14px; }
+  .btn-full { width:100%; }
+  input[type=text], input[type=password] {
+    width:100%; padding:14px 16px; border:2px solid var(--navy-light); border-radius:var(--radius-sm);
+    background:var(--navy-mid); color:var(--white); font-size:16px; outline:none; transition:border-color .2s;
+  }
+  input:focus { border-color:var(--gold); }
+  input::placeholder { color:var(--gray-400); }
+  .label { font-size:13px; color:var(--gold); font-weight:600; margin-bottom:6px; letter-spacing:.06em; text-transform:uppercase; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; }
+  .badge-gold { background:var(--gold); color:var(--navy); }
+  .badge-navy { background:var(--navy-light); color:var(--gold); }
+
+  /* 로그인 */
+  #screen-login { justify-content:center; align-items:center; padding:24px; background:linear-gradient(160deg, var(--navy) 60%, var(--navy-mid) 100%); }
+  .login-box { width:100%; max-width:400px; background:var(--navy-mid); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-card); border:1px solid rgba(201,162,75,.15); }
+  .login-logo { text-align:center; margin-bottom:32px; }
+  .login-logo .logo-en { font-size:28px; font-weight:900; color:var(--gold); letter-spacing:.12em; }
+  .login-logo .logo-x { color:var(--white); font-size:32px; }
+  .login-logo .logo-sub { font-size:13px; color:var(--gray-400); margin-top:4px; }
+  .login-form { display:flex; flex-direction:column; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .login-error { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.4); color:#fca5a5; padding:10px 14px; border-radius:var(--radius-sm); font-size:14px; display:none; }
+  .admin-toggle { text-align:center; margin-top:12px; font-size:13px; color:var(--gray-400); }
+  .admin-toggle a { color:var(--gold); cursor:pointer; text-decoration:none; }
+  .admin-toggle a:hover { text-decoration:underline; }
+
+  /* 공통 헤더 */
+  .app-header { background:var(--navy-mid); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(201,162,75,.2); position:sticky; top:0; z-index:100; }
+  .header-logo { font-size:18px; font-weight:900; color:var(--gold); letter-spacing:.1em; }
+  .header-user { font-size:13px; color:var(--gray-400); }
+  .header-user span { color:var(--gold-light); font-weight:700; }
+  .btn-logout { padding:6px 14px; font-size:12px; background:transparent; border:1px solid var(--gray-600); color:var(--gray-400); border-radius:6px; cursor:pointer; }
+  .btn-logout:hover { border-color:var(--gold); color:var(--gold); }
+  .btn-back { background:none; border:none; color:var(--gold); font-size:22px; cursor:pointer; padding:0 6px; }
+
+  /* 대시보드 */
+  #screen-dashboard { background:var(--navy); }
+  .dashboard-body { padding:24px 20px; flex:1; }
+  .unit-card { background:var(--navy-mid); border-radius:var(--radius-lg); padding:20px; margin-bottom:16px; border:1px solid rgba(201,162,75,.1); cursor:pointer; transition:all .2s; }
+  .unit-card:hover { border-color:var(--gold); transform:translateY(-2px); box-shadow:var(--shadow); }
+  .unit-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+  .unit-title { font-size:17px; font-weight:700; }
+  .unit-count { font-size:13px; color:var(--gray-400); margin-top:4px; }
+  .section-title { font-size:13px; font-weight:700; color:var(--gold); letter-spacing:.1em; text-transform:uppercase; margin-bottom:14px; }
+  .empty-hint { text-align:center; color:var(--gray-400); font-size:14px; padding:60px 20px; line-height:1.7; }
+
+  /* 모드 화면 */
+  #screen-mode { background:var(--navy); }
+  .mode-body { padding:24px 20px; flex:1; }
+  .mode-unit-title { font-size:22px; font-weight:900; margin-bottom:6px; }
+  .mode-unit-sub { font-size:14px; color:var(--gray-400); margin-bottom:28px; }
+  .mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .mode-btn { background:var(--navy-mid); border:2px solid rgba(201,162,75,.2); border-radius:var(--radius-md); padding:24px 16px; text-align:center; cursor:pointer; transition:all .2s; }
+  .mode-btn:hover { border-color:var(--gold); background:rgba(201,162,75,.08); }
+  .mode-icon { font-size:32px; margin-bottom:8px; }
+  .mode-name { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .mode-desc { font-size:12px; color:var(--gray-400); line-height:1.4; }
+
+  /* 카드 학습 */
+  #screen-card { background:#0a1628; }
+  .stage-header { background:var(--navy-mid); padding:14px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(201,162,75,.15); position:relative; z-index:10; }
+  .stage-title-text { font-size:16px; font-weight:700; }
+  .stage-progress-text { margin-left:auto; font-size:13px; color:var(--gray-400); }
+  .card-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+  .card-scene { width:min(640px, calc(100vw - 32px)); height:min(400px, calc(100vh - 280px)); perspective:1200px; cursor:pointer; margin-bottom:24px; }
+  .card-inner { width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .45s cubic-bezier(.4,0,.2,1); border-radius:24px; }
+  .card-inner.flipped { transform:rotateY(180deg); }
+  .card-face { position:absolute; width:100%; height:100%; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 16px 56px rgba(0,0,0,.35); padding:24px; text-align:center; }
+  .card-front { background:var(--white); color:var(--navy); }
+  .card-back { background:var(--gold-pale); color:var(--navy); transform:rotateY(180deg); }
+  .card-term { font-size:clamp(28px,6vw,46px); font-weight:900; line-height:1.25; word-break:keep-all; }
+  .card-meaning { font-size:clamp(22px,4.5vw,34px); font-weight:800; margin-bottom:16px; word-break:keep-all; }
+  .card-example { font-size:clamp(14px,2vw,16px); color:var(--gray-600); line-height:1.6; max-width:480px; }
+  .card-hint { font-size:12px; color:var(--gray-400); margin-top:14px; }
+  .card-nav { display:flex; gap:16px; align-items:center; }
+  .nav-btn { width:56px; height:56px; border-radius:50%; border:2px solid var(--navy-light); background:var(--navy-mid); color:var(--white); font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+  .nav-btn:hover { border-color:var(--gold); }
+  .nav-btn.primary { background:var(--gold); color:var(--navy); border-color:var(--gold); }
+
+  /* 퀴즈(단어/예문 공통) */
+  #screen-quiz { background:#0a1628; }
+  .quiz-area { flex:1; display:flex; flex-direction:column; padding:20px; max-width:720px; width:100%; margin:0 auto; }
+  .quiz-progress-bar { height:5px; background:var(--navy-light); border-radius:3px; margin-bottom:20px; }
+  .quiz-progress-fill { height:100%; background:var(--gold); border-radius:3px; transition:width .4s; }
+  .quiz-question { background:#162a47; border-radius:18px; padding:clamp(28px,5vw,44px) clamp(20px,4vw,32px); text-align:center; margin-bottom:20px; border:1px solid rgba(201,162,75,.2); min-height:clamp(120px,18vw,170px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+  .quiz-qlabel { font-size:12px; color:var(--gold); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px; }
+  .quiz-qword { font-size:clamp(24px,5.5vw,40px); font-weight:900; line-height:1.3; word-break:keep-all; }
+  .quiz-options { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .quiz-option { background:#1a3050; border:2.5px solid rgba(100,140,200,.25); border-radius:16px; padding:clamp(20px,4vw,30px) clamp(14px,3vw,20px); font-size:clamp(15px,2.6vw,20px); font-weight:700; cursor:pointer; transition:all .18s; text-align:center; color:var(--white); line-height:1.35; min-height:clamp(72px,11vw,100px); display:flex; align-items:center; justify-content:center; word-break:keep-all; }
+  .quiz-option:hover { border-color:var(--gold); background:rgba(201,162,75,.12); }
+  .quiz-option.correct { border-color:var(--green); background:rgba(34,197,94,.18); color:#4ade80; transform:scale(1.02); }
+  .quiz-option.wrong { border-color:var(--red); background:rgba(239,68,68,.18); color:#f87171; animation:qShake .3s ease; }
+  @keyframes qShake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+  .quiz-score { text-align:center; margin-top:10px; font-size:13px; color:var(--gray-400); }
+  .quiz-score span { color:var(--gold); font-weight:700; }
+
+  /* 결과 */
+  #screen-result { background:var(--navy); justify-content:center; align-items:center; padding:24px; }
+  .result-box { width:100%; max-width:400px; background:var(--navy-mid); border-radius:var(--radius-lg); padding:36px 28px; text-align:center; border:1px solid rgba(201,162,75,.2); box-shadow:var(--shadow-card); }
+  .result-emoji { font-size:56px; margin-bottom:12px; }
+  .result-title { font-size:20px; font-weight:900; margin-bottom:6px; }
+  .result-score { font-size:52px; font-weight:900; color:var(--gold); margin:16px 0; }
+  .result-score span { font-size:24px; color:var(--gray-400); }
+  .result-meta { font-size:14px; color:var(--gray-400); margin-bottom:20px; }
+  .result-wrong { background:var(--navy); border-radius:var(--radius-md); padding:16px; text-align:left; margin-bottom:20px; max-height:220px; overflow-y:auto; }
+  .result-wrong-title { font-size:13px; color:var(--gold); font-weight:700; margin-bottom:10px; }
+  .result-wrong-item { display:flex; flex-direction:column; gap:2px; font-size:13px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+  .result-wrong-item:last-child { border-bottom:none; }
+  .result-wrong-term { font-weight:700; color:var(--gold-light); }
+  .result-wrong-meaning { color:var(--gray-400); }
+  .result-btns { display:flex; flex-direction:column; gap:10px; }
+
+  /* 관리자 */
+  #screen-admin { background:var(--navy); }
+  .admin-body { padding:20px; flex:1; }
+  .admin-card { background:var(--navy-mid); border-radius:var(--radius-md); padding:20px; margin-bottom:16px; border:1px solid rgba(201,162,75,.15); }
+  .admin-card h3 { font-size:15px; font-weight:700; color:var(--gold); margin-bottom:14px; }
+  .admin-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .admin-table th { text-align:left; padding:8px 10px; background:var(--navy); color:var(--gold); font-size:11px; letter-spacing:.05em; text-transform:uppercase; }
+  .admin-table td { padding:10px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:middle; }
+  .admin-table tr:last-child td { border-bottom:none; }
+  .score-pill { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:700; }
+  .score-high { background:rgba(34,197,94,.2); color:var(--green); }
+  .score-mid { background:rgba(245,158,11,.2); color:var(--orange); }
+  .score-low { background:rgba(239,68,68,.2); color:var(--red); }
+  .upload-area { border:2px dashed rgba(201,162,75,.4); border-radius:var(--radius-md); padding:24px; text-align:center; cursor:pointer; transition:all .2s; }
+  .upload-area:hover { border-color:var(--gold); background:rgba(201,162,75,.05); }
+  .upload-icon { font-size:32px; margin-bottom:8px; }
+  .upload-text { font-size:14px; color:var(--gray-400); }
+  .upload-text strong { color:var(--gold); }
+  .unit-row { border:1px solid rgba(201,162,75,.25); border-radius:10px; padding:12px 14px; margin-bottom:8px; background:rgba(201,162,75,.04); display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .unit-row-name { font-size:14px; font-weight:700; }
+  .unit-row-sub { font-size:12px; color:var(--gray-400); margin-top:4px; }
+  .unit-row-preview { font-size:11px; color:var(--gray-600); margin-top:3px; }
+  .row-btn { border-radius:6px; padding:5px 10px; font-size:12px; cursor:pointer; flex-shrink:0; }
+  .row-btn-view { background:rgba(201,162,75,.15); border:1px solid var(--gold); color:var(--gold); }
+  .row-btn-del { background:rgba(239,68,68,.12); border:1px solid var(--red); color:var(--red); }
+
+  .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(60px); background:var(--navy-mid); border:1px solid var(--gold); color:var(--white); padding:12px 24px; border-radius:24px; font-size:14px; font-weight:600; z-index:9999; transition:transform .3s; white-space:nowrap; max-width:90vw; overflow:hidden; text-overflow:ellipsis; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:400px) {
+    .card-term { font-size:24px; } .card-scene { height:220px; }
+    .mode-grid { grid-template-columns:1fr; }
+    .quiz-options { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div id="screen-login" class="screen active">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-en">EDEN<span class="logo-x"> X</span></div>
+      <div class="logo-sub">과학·사회 Voca</div>
+    </div>
+    <div class="login-form" id="login-form-student">
+      <div class="form-group">
+        <div class="label">이름</div>
+        <input type="text" id="input-name" placeholder="이름을 입력하세요" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <div class="label">비밀번호</div>
+        <input type="password" id="input-pw" placeholder="비밀번호를 입력하세요">
+      </div>
+      <div class="login-error" id="login-error">이름 또는 비밀번호가 올바르지 않습니다.</div>
+      <button class="btn btn-gold btn-full" onclick="doLogin()">로그인</button>
+    </div>
+    <div class="admin-toggle">
+      <a onclick="toggleAdminMode()">관리자로 로그인</a>
+    </div>
+    <div class="login-form" id="login-form-admin" style="display:none; margin-top:16px;">
+      <div class="form-group">
+        <div class="label">관리자 비밀번호</div>
+        <input type="password" id="input-admin-pw" placeholder="관리자 비밀번호" onkeydown="if(event.key==='Enter') doAdminLogin()">
+      </div>
+      <button class="btn btn-outline btn-full" onclick="doAdminLogin()">관리자 로그인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 대시보드 -->
+<div id="screen-dashboard" class="screen">
+  <div class="app-header">
+    <div class="header-logo">EDEN X</div>
+    <div class="header-user">안녕하세요, <span id="dash-username"></span>님</div>
+    <button class="btn-logout" onclick="doLogout()">로그아웃</button>
+  </div>
+  <div class="dashboard-body">
+    <div class="section-title">📚 단원 목록</div>
+    <div id="unit-list"></div>
+  </div>
+</div>
+
+<!-- 모드 선택 -->
+<div id="screen-mode" class="screen">
+  <div class="app-header">
+    <button class="btn-back" onclick="showScreen('screen-dashboard')">←</button>
+    <div class="header-logo">EDEN X</div>
+    <div></div>
+  </div>
+  <div class="mode-body">
+    <div class="mode-unit-title" id="mode-unit-title"></div>
+    <div class="mode-unit-sub" id="mode-unit-sub"></div>
+    <div class="mode-grid">
+      <div class="mode-btn" onclick="startCardStudy()">
+        <div class="mode-icon">🃏</div>
+        <div class="mode-name">단어 카드학습</div>
+        <div class="mode-desc">단어·뜻·예문 훑어보기</div>
+      </div>
+      <div class="mode-btn" onclick="startWordQuiz()">
+        <div class="mode-icon">✅</div>
+        <div class="mode-name">단어 뜻 퀴즈</div>
+        <div class="mode-desc">4지선다로 뜻 맞히기</div>
+      </div>
+      <div class="mode-btn" onclick="startExampleQuiz()">
+        <div class="mode-icon">✍️</div>
+        <div class="mode-name">예문 빈칸 연습</div>
+        <div class="mode-desc">예문 속 빈칸에 알맞은 단어 고르기</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 카드 학습 -->
+<div id="screen-card" class="screen">
+  <div class="stage-header">
+    <button class="btn-back" onclick="showScreen('screen-mode')">←</button>
+    <div class="stage-title-text">단어 카드학습</div>
+    <div class="stage-progress-text" id="card-progress"></div>
+  </div>
+  <div class="card-area">
+    <div class="card-scene" id="card-scene" onclick="flipCard()">
+      <div class="card-inner" id="card-inner">
+        <div class="card-face card-front">
+          <div class="card-term" id="card-term"></div>
+        </div>
+        <div class="card-face card-back">
+          <div class="card-meaning" id="card-meaning"></div>
+          <div class="card-example" id="card-example"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-hint">카드를 탭하면 뒤집혀요</div>
+    <div class="card-nav" style="margin-top:20px;">
+      <button class="nav-btn" onclick="cardPrev()">‹</button>
+      <button class="nav-btn primary" onclick="cardNext()">다음 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- 퀴즈 (단어뜻/예문 공통) -->
+<div id="screen-quiz" class="screen">
+  <div class="stage-header">
+    <button class="btn-back" onclick="confirmQuizBack()">←</button>
+    <div class="stage-title-text" id="quiz-title-text"></div>
+    <div class="stage-progress-text" id="quiz-progress"></div>
+  </div>
+  <div class="quiz-area">
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-bar"></div></div>
+    <div class="quiz-question">
+      <div class="quiz-qlabel" id="quiz-qlabel"></div>
+      <div class="quiz-qword" id="quiz-qword"></div>
+    </div>
+    <div class="quiz-options" id="quiz-options"></div>
+    <div class="quiz-score">맞은 개수: <span id="quiz-score">0</span> / <span id="quiz-total">0</span></div>
+  </div>
+</div>
+
+<!-- 결과 -->
+<div id="screen-result" class="screen">
+  <div class="result-box">
+    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-score"><span id="result-score">0</span><span>%</span></div>
+    <div class="result-meta" id="result-meta"></div>
+    <div class="result-wrong" id="result-wrong" style="display:none;">
+      <div class="result-wrong-title">📝 틀린 항목</div>
+      <div id="result-wrong-list"></div>
+    </div>
+    <div class="result-btns">
+      <button class="btn btn-gold" onclick="showScreen('screen-mode')">다시 학습하기</button>
+      <button class="btn btn-outline" onclick="showScreen('screen-dashboard')">단원 목록으로</button>
+    </div>
+  </div>
+</div>
+
+<!-- 관리자 -->
+<div id="screen-admin" class="screen">
+  <div class="app-header">
+    <div class="header-logo">EDEN X 관리자</div>
+    <button class="btn-logout" onclick="doLogout()">로그아웃</button>
+  </div>
+  <div class="admin-body">
+    <div class="admin-card">
+      <h3>📤 단어장 업로드</h3>
+      <div class="upload-area" onclick="document.getElementById('csv-file').click()">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text"><strong>클릭하여 CSV 파일 선택</strong><br>형식: Unit, 단어, 뜻, 예문(선택)</div>
+        <input type="file" id="csv-file" accept=".csv,.txt" style="display:none" onchange="uploadWordList(this)">
+      </div>
+      <div id="upload-status" style="margin-top:12px; font-size:13px;"></div>
+      <div style="margin-top:10px;">
+        <button class="btn btn-outline btn-sm" onclick="downloadSampleCSV()">📄 샘플 CSV 내려받기</button>
+      </div>
+    </div>
+    <div class="admin-card" id="admin-wordlist-card" style="display:none;">
+      <h3>📚 등록된 단원 <span id="admin-unit-count" style="font-size:12px;color:var(--gray-400);"></span></h3>
+      <div id="admin-unit-list"></div>
+    </div>
+    <div class="admin-card">
+      <h3>📊 학생 학습 결과</h3>
+      <div style="overflow-x:auto;">
+        <table class="admin-table" id="admin-results-table">
+          <thead><tr><th>이름</th><th>단원</th><th>모드</th><th>점수</th><th>날짜</th></tr></thead>
+          <tbody id="admin-results-body">
+            <tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:20px;">아직 결과 없음</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="admin-card">
+      <h3>👥 등록 학생 목록 <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(구글 시트에서 자동으로 불러옵니다)</span></h3>
+      <div style="margin-bottom:10px; font-size:12px; color:var(--gray-400); line-height:1.6;">
+        학생 추가·삭제는 아래 구글 시트에서 행을 추가/삭제하면 됩니다. A열=이름, B열=비밀번호.
+        <br><a href="https://docs.google.com/spreadsheets/d/1pDwVPADpZrVpvfRZu-t2Ps6rgvZq49e5gTZYI7z8Nc0/edit" target="_blank" style="color:var(--gold);">📄 학생 명단 시트 열기</a>
+        &nbsp;|&nbsp; <a onclick="loadStudentsFromSheet(true)" style="color:var(--gold); cursor:pointer;">🔄 새로고침</a>
+      </div>
+      <table class="admin-table">
+        <thead><tr><th>이름</th><th>비밀번호</th><th>상태</th></tr></thead>
+        <tbody id="admin-students-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// 설정
+// ═══════════════════════════════════════════════
+const SHEET_ID = '1pDwVPADpZrVpvfRZu-t2Ps6rgvZq49e5gTZYI7z8Nc0';
+const ADMIN_PW = 'eden2026';
+
+let STUDENTS = [];
+function loadStudentsFromSheet(manual){
+  if (!SHEET_ID) return;
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+  fetch(url).then(res => { if(!res.ok) throw new Error(); return res.text(); })
+    .then(text => {
+      const rows = text.split('\n').slice(1);
+      const loaded = [];
+      for (const row of rows) {
+        const cols = row.split(',').map(c => c.replace(/"/g,'').trim());
+        if (cols[0] && cols[1]) loaded.push({name:cols[0], pw:cols[1]});
+      }
+      if (loaded.length > 0) STUDENTS = loaded;
+      if (manual) { renderAdminStudents(); showToast('학생 명단을 새로고침했습니다 🔄'); }
+    })
+    .catch(() => { if(manual) showToast('⚠️ 시트를 불러오지 못했습니다'); });
+}
+loadStudentsFromSheet();
+
+// 단어장 데이터: [{id, title, subtitle, words:[{term,meaning,example}]}]
+let WORD_UNITS = [];
+
+// ═══════════════════════════════════════════════
+// 상태
+// ═══════════════════════════════════════════════
+let state = {
+  user: null, isAdmin: false,
+  currentUnit: null,
+  cardIdx: 0,
+  quizMode: null, // 'word' | 'example'
+  quizQueue: [], quizIdx: 0, quizCorrect: 0, quizWrong: [],
+};
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-dashboard') renderDashboard();
+  window.scrollTo(0,0);
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ═══════════════════════════════════════════════
+// 로그인
+// ═══════════════════════════════════════════════
+let adminMode = false;
+function toggleAdminMode(){
+  adminMode = !adminMode;
+  document.getElementById('login-form-admin').style.display = adminMode ? 'flex' : 'none';
+  if (adminMode) setTimeout(() => { const el = document.getElementById('input-admin-pw'); if(el){el.value='';el.focus();} }, 50);
+}
+function doLogin(){
+  const name = document.getElementById('input-name').value.trim();
+  const pw = document.getElementById('input-pw').value.trim();
+  const err = document.getElementById('login-error');
+  if (!name || !pw) { err.style.display='block'; return; }
+  const found = STUDENTS.find(s => s.name.trim()===name && String(s.pw).trim()===String(pw).trim());
+  if (!found) { err.style.display='block'; return; }
+  err.style.display='none';
+  state.user = found.name; state.isAdmin = false;
+  document.getElementById('dash-username').textContent = state.user;
+  showScreen('screen-dashboard');
+}
+function doAdminLogin(){
+  const pw = document.getElementById('input-admin-pw').value.trim();
+  if (pw !== ADMIN_PW) { showToast('관리자 비밀번호가 틀렸습니다.'); return; }
+  state.user = '관리자'; state.isAdmin = true;
+  showScreen('screen-admin');
+  setTimeout(loadAdminData, 50);
+}
+function doLogout(){
+  state.user = null; state.isAdmin = false;
+  ['input-name','input-pw','input-admin-pw'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  showScreen('screen-login');
+}
+
+// ═══════════════════════════════════════════════
+// 대시보드 / 모드 선택
+// ═══════════════════════════════════════════════
+function renderDashboard(){
+  const ul = document.getElementById('unit-list');
+  if (WORD_UNITS.length === 0) {
+    ul.innerHTML = `<div class="empty-hint">아직 등록된 단원이 없습니다.<br>선생님이 단어장을 업로드하면 여기에 표시됩니다.</div>`;
+    return;
+  }
+  ul.innerHTML = '';
+  WORD_UNITS.forEach((unit, idx) => {
+    ul.innerHTML += `<div class="unit-card" onclick="selectUnit(${idx})">
+      <div class="unit-top">
+        <div>
+          <div class="unit-title">${unit.title}</div>
+          <div class="unit-count">${unit.words.length}개 단어 · ${unit.subtitle}</div>
+        </div>
+        <span class="badge badge-navy">학습하기</span>
+      </div>
+    </div>`;
+  });
+}
+function selectUnit(idx){
+  state.currentUnit = WORD_UNITS[idx];
+  document.getElementById('mode-unit-title').textContent = state.currentUnit.title;
+  document.getElementById('mode-unit-sub').textContent = `${state.currentUnit.words.length}개 단어 · ${state.currentUnit.subtitle}`;
+  showScreen('screen-mode');
+}
+
+// ═══════════════════════════════════════════════
+// 카드 학습
+// ═══════════════════════════════════════════════
+function startCardStudy(){
+  state.cardIdx = 0;
+  showScreen('screen-card');
+  renderCard();
+}
+function renderCard(){
+  const words = state.currentUnit.words;
+  const w = words[state.cardIdx];
+  document.getElementById('card-progress').textContent = `${state.cardIdx+1} / ${words.length}`;
+  document.getElementById('card-term').textContent = w.term;
+  document.getElementById('card-meaning').textContent = w.meaning;
+  document.getElementById('card-example').textContent = w.example ? '예문: ' + w.example : '';
+  document.getElementById('card-inner').classList.remove('flipped');
+}
+function flipCard(){ document.getElementById('card-inner').classList.toggle('flipped'); }
+function cardNext(){
+  const words = state.currentUnit.words;
+  if (state.cardIdx < words.length-1) { state.cardIdx++; renderCard(); }
+  else { showToast('마지막 카드예요! 🎉'); }
+}
+function cardPrev(){
+  if (state.cardIdx > 0) { state.cardIdx--; renderCard(); }
+}
+
+// ═══════════════════════════════════════════════
+// 퀴즈 공통 유틸
+// ═══════════════════════════════════════════════
+function shuffle(arr){ return [...arr].sort(() => Math.random()-.5); }
+
+function pickDistractors(pool, exclude, count){
+  const others = pool.filter(w => w.term !== exclude.term);
+  return shuffle(others).slice(0, count);
+}
+
+function confirmQuizBack(){
+  if (confirm('학습을 그만두고 나가시겠어요?')) showScreen('screen-mode');
+}
+
+// ═══════════════════════════════════════════════
+// 단어 뜻 퀴즈 (4지선다)
+// ═══════════════════════════════════════════════
+function startWordQuiz(){
+  state.quizMode = 'word';
+  state.quizQueue = shuffle(state.currentUnit.words);
+  state.quizIdx = 0; state.quizCorrect = 0; state.quizWrong = [];
+  document.getElementById('quiz-title-text').textContent = '단어 뜻 퀴즈';
+  document.getElementById('quiz-total').textContent = state.quizQueue.length;
+  document.getElementById('quiz-score').textContent = '0';
+  showScreen('screen-quiz');
+  renderWordQuiz();
+}
+function renderWordQuiz(){
+  const q = state.quizQueue[state.quizIdx];
+  if (!q) { finishQuiz(); return; }
+  document.getElementById('quiz-progress').textContent = `${state.quizIdx+1} / ${state.quizQueue.length}`;
+  document.getElementById('quiz-bar').style.width = `${(state.quizIdx/state.quizQueue.length)*100}%`;
+  document.getElementById('quiz-qlabel').textContent = '이 단어의 뜻은?';
+  document.getElementById('quiz-qword').textContent = q.term;
+  const pool = state.currentUnit.words.length >= 4 ? state.currentUnit.words : allWordsPool();
+  const distractors = pickDistractors(pool, q, 3);
+  const opts = shuffle([q, ...distractors]);
+  const area = document.getElementById('quiz-options');
+  area.innerHTML = '';
+  opts.forEach(opt => {
+    const btn = document.createElement('div');
+    btn.className = 'quiz-option';
+    btn.textContent = opt.meaning;
+    btn.onclick = () => handleQuizAnswer(opt.term === q.term, q, btn, opt);
+    area.appendChild(btn);
+  });
+}
+function allWordsPool(){
+  let all = [];
+  WORD_UNITS.forEach(u => all = all.concat(u.words));
+  return all.length ? all : state.currentUnit.words;
+}
+
+// ═══════════════════════════════════════════════
+// 예문 빈칸 연습 (4지선다)
+// ═══════════════════════════════════════════════
+function startExampleQuiz(){
+  const withEx = state.currentUnit.words.filter(w => w.example && w.example.trim());
+  if (withEx.length === 0) { showToast('이 단원에는 예문이 등록된 단어가 없습니다.'); return; }
+  state.quizMode = 'example';
+  state.quizQueue = shuffle(withEx);
+  state.quizIdx = 0; state.quizCorrect = 0; state.quizWrong = [];
+  document.getElementById('quiz-title-text').textContent = '예문 빈칸 연습';
+  document.getElementById('quiz-total').textContent = state.quizQueue.length;
+  document.getElementById('quiz-score').textContent = '0';
+  showScreen('screen-quiz');
+  renderExampleQuiz();
+}
+function blankExample(example, term){
+  if (example.toLowerCase().includes(term.toLowerCase())) {
+    const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+    return example.replace(re, '＿＿＿＿');
+  }
+  return example;
+}
+function renderExampleQuiz(){
+  const q = state.quizQueue[state.quizIdx];
+  if (!q) { finishQuiz(); return; }
+  document.getElementById('quiz-progress').textContent = `${state.quizIdx+1} / ${state.quizQueue.length}`;
+  document.getElementById('quiz-bar').style.width = `${(state.quizIdx/state.quizQueue.length)*100}%`;
+  document.getElementById('quiz-qlabel').textContent = '빈칸에 알맞은 단어는?';
+  document.getElementById('quiz-qword').textContent = blankExample(q.example, q.term);
+  const pool = state.currentUnit.words.length >= 4 ? state.currentUnit.words : allWordsPool();
+  const distractors = pickDistractors(pool, q, 3);
+  const opts = shuffle([q, ...distractors]);
+  const area = document.getElementById('quiz-options');
+  area.innerHTML = '';
+  opts.forEach(opt => {
+    const btn = document.createElement('div');
+    btn.className = 'quiz-option';
+    btn.textContent = opt.term;
+    btn.onclick = () => handleQuizAnswer(opt.term === q.term, q, btn, opt);
+    area.appendChild(btn);
+  });
+}
+
+function handleQuizAnswer(isCorrect, q, btn, opt){
+  document.querySelectorAll('.quiz-option').forEach(b => b.onclick = null);
+  if (isCorrect) {
+    btn.classList.add('correct');
+    state.quizCorrect++;
+    showToast('정답이에요! ✅');
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.quiz-option').forEach(b => {
+      const label = state.quizMode === 'word' ? q.meaning : q.term;
+      if (b.textContent === label) b.classList.add('correct');
+    });
+    state.quizWrong.push(q);
+    showToast('오답이에요 😢');
+  }
+  document.getElementById('quiz-score').textContent = state.quizCorrect;
+  setTimeout(() => {
+    state.quizIdx++;
+    if (state.quizMode === 'word') renderWordQuiz(); else renderExampleQuiz();
+  }, isCorrect ? 700 : 1300);
+}
+
+function finishQuiz(){
+  const total = state.quizQueue.length;
+  const pct = total ? Math.round((state.quizCorrect/total)*100) : 0;
+  const modeLabel = state.quizMode === 'word' ? '단어 뜻 퀴즈' : '예문 빈칸 연습';
+  const result = { user: state.user, unit: state.currentUnit.title, mode: modeLabel, score: pct, wrong: state.quizWrong.map(w => w.term), date: new Date().toLocaleDateString('ko-KR') };
+  saveResult(result);
+  showResult(pct, result);
+}
+function saveResult(result){
+  const all = JSON.parse(localStorage.getItem('eden_ss_results') || '[]');
+  all.push(result);
+  localStorage.setItem('eden_ss_results', JSON.stringify(all));
+}
+function showResult(pct, result){
+  const emoji = pct>=90?'🏆':pct>=70?'🎉':pct>=50?'💪':'📖';
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = `${result.mode} 완료!`;
+  document.getElementById('result-score').textContent = pct;
+  document.getElementById('result-meta').textContent = `${result.user} · ${result.unit} · ${result.date}`;
+  if (state.quizWrong.length > 0) {
+    document.getElementById('result-wrong').style.display = 'block';
+    const list = document.getElementById('result-wrong-list');
+    list.innerHTML = '';
+    state.quizWrong.forEach(w => {
+      list.innerHTML += `<div class="result-wrong-item"><span class="result-wrong-term">${w.term}</span><span class="result-wrong-meaning">${w.meaning}</span></div>`;
+    });
+  } else {
+    document.getElementById('result-wrong').style.display = 'none';
+  }
+  showScreen('screen-result');
+}
+
+// ═══════════════════════════════════════════════
+// CSV 업로드 (Unit, 단어, 뜻, 예문)
+// ═══════════════════════════════════════════════
+function parseCSVRow(row){
+  const cols = []; let cur='', inQ=false;
+  for (let i=0;i<row.length;i++){
+    const ch = row[i];
+    if (ch === '"'){ inQ = !inQ; continue; }
+    if (ch === ',' && !inQ){ cols.push(cur.trim()); cur=''; continue; }
+    cur += ch;
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+function isGarbled(text){
+  const hasValidKorean = /[\uAC00-\uD7A3]/.test(text);
+  const hasReplacement = /\uFFFD/.test(text);
+  const brokenPattern = /[\x80-\xBF]{2,}/.test(text);
+  return hasReplacement || (!hasValidKorean && brokenPattern);
+}
+function parseAndLoadCSV(text, statusEl){
+  const cleaned = text.replace(/^\uFEFF/, '');
+  const rows = cleaned.split(/\r?\n/).filter(r => r.trim());
+  if (rows.length < 2) { statusEl.style.color='var(--red)'; statusEl.textContent='❌ 데이터가 부족합니다.'; return false; }
+  const firstCols = parseCSVRow(rows[0]);
+  const isHeader = /^(unit|단원|chapter|day)\s*$/i.test(firstCols[0]) || /^[가-힣]/.test(firstCols[0]) || (firstCols[1] && /^[가-힣]/.test(firstCols[1]));
+  const dataRows = isHeader ? rows.slice(1) : rows;
+  const unitMap = new Map(); const unitOrder = [];
+  dataRows.forEach(row => {
+    if (!row.trim()) return;
+    const cols = parseCSVRow(row);
+    if (cols.length < 3) return;
+    const unitName = cols[0].trim();
+    const term = cols[1].trim();
+    const meaning = cols[2].trim();
+    const example = cols[3] ? cols[3].trim() : '';
+    if (!unitName || !term || !meaning) return;
+    if (!unitMap.has(unitName)) { unitMap.set(unitName, []); unitOrder.push(unitName); }
+    unitMap.get(unitName).push({ term, meaning, example });
+  });
+  if (unitOrder.length === 0) { statusEl.style.color='var(--red)'; statusEl.textContent='❌ 단어를 찾을 수 없습니다. 형식을 확인해주세요.'; return false; }
+  WORD_UNITS.length = 0;
+  let totalWords = 0;
+  unitOrder.forEach(unitName => {
+    const words = unitMap.get(unitName);
+    totalWords += words.length;
+    WORD_UNITS.push({ id: `unit_${unitName}_${Date.now()}`, title: unitName, subtitle: `${words.length}개 단어`, words });
+  });
+  statusEl.style.color = 'var(--green)';
+  statusEl.innerHTML = `✅ <strong>${unitOrder.length}개 단원, ${totalWords}개 단어</strong> 등록 완료!`;
+  renderAdminUnitList();
+  showToast(`${unitOrder.length}개 단원 등록 완료 🎉`);
+  return true;
+}
+function uploadWordList(input){
+  const file = input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('upload-status');
+  statusEl.style.color = 'var(--gray-400)';
+  statusEl.textContent = '⏳ 파일을 읽는 중...';
+  input.value = '';
+  const r1 = new FileReader();
+  r1.onload = e => {
+    const textUtf8 = e.target.result;
+    if (!isGarbled(textUtf8)) { parseAndLoadCSV(textUtf8, statusEl); }
+    else {
+      const r2 = new FileReader();
+      r2.onload = e2 => { if (!parseAndLoadCSV(e2.target.result, statusEl)) parseAndLoadCSV(textUtf8, statusEl); };
+      r2.readAsText(file, 'EUC-KR');
+    }
+  };
+  r1.readAsText(file, 'UTF-8');
+}
+function downloadSampleCSV(){
+  const bom = '\uFEFF';
+  const sample = bom + `Unit,단어,뜻,예문\n과학 1단원,광합성,식물이 빛에너지를 이용해 양분을 만드는 과정,식물은 광합성을 통해 산소를 만든다.\n과학 1단원,증발,액체가 기체로 변하는 현상,물이 증발하여 수증기가 되었다.\n사회 1단원,민주주의,국민이 주권을 가지고 정치에 참여하는 정치 체제,우리나라는 민주주의 국가이다.\n사회 1단원,헌법,국가의 최고 법규,헌법은 모든 법의 기준이 된다.`;
+  const blob = new Blob([sample], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = '샘플_과학사회_단어장.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════
+// 관리자 화면 렌더링
+// ═══════════════════════════════════════════════
+function loadAdminData(){
+  renderAdminUnitList();
+  renderAdminStudents();
+  renderAdminResults();
+}
+function renderAdminUnitList(){
+  const card = document.getElementById('admin-wordlist-card');
+  const list = document.getElementById('admin-unit-list');
+  const count = document.getElementById('admin-unit-count');
+  if (!card || !list) return;
+  if (WORD_UNITS.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  count.textContent = `총 ${WORD_UNITS.length}개 단원`;
+  list.innerHTML = '';
+  WORD_UNITS.forEach((unit, idx) => {
+    const preview = unit.words.slice(0,3).map(w => `${w.term}(${w.meaning})`).join(', ');
+    const row = document.createElement('div');
+    row.className = 'unit-row';
+    row.innerHTML = `<div style="flex:1;min-width:0;">
+        <div class="unit-row-name">${unit.title}</div>
+        <div class="unit-row-sub">${unit.subtitle}</div>
+        <div class="unit-row-preview">${preview}${unit.words.length>3?' ...':''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="row-btn row-btn-view" onclick="previewUnit(${idx})">미리보기</button>
+        <button class="row-btn row-btn-del" onclick="removeUnit(${idx})">삭제</button>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+function previewUnit(idx){
+  const unit = WORD_UNITS[idx];
+  const preview = unit.words.slice(0,15).map((w,i) => `${String(i+1).padStart(2,' ')}. ${w.term} — ${w.meaning}`).join('\n');
+  alert(`📚 ${unit.title} (${unit.subtitle})\n${'─'.repeat(30)}\n${preview}${unit.words.length>15?'\n... 외 '+(unit.words.length-15)+'개':''}`);
+}
+function removeUnit(idx){
+  if (!confirm(`"${WORD_UNITS[idx].title}" 단원을 삭제하시겠습니까?`)) return;
+  WORD_UNITS.splice(idx,1);
+  renderAdminUnitList();
+  showToast('단원이 삭제되었습니다.');
+}
+function renderAdminStudents(){
+  const tbody = document.getElementById('admin-students-body');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  if (STUDENTS.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:16px;">등록된 학생이 없습니다.</td></tr>'; return; }
+  STUDENTS.forEach(s => {
+    tbody.innerHTML += `<tr><td>${s.name}</td><td style="color:var(--gold-light);font-weight:700;">${s.pw}</td><td><span class="badge badge-navy">등록</span></td></tr>`;
+  });
+}
+function renderAdminResults(){
+  const results = JSON.parse(localStorage.getItem('eden_ss_results') || '[]');
+  const rb = document.getElementById('admin-results-body');
+  if (!rb) return;
+  if (results.length === 0) { rb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:20px;">아직 결과 없음</td></tr>'; return; }
+  rb.innerHTML = '';
+  results.slice().reverse().forEach(r => {
+    const cls = r.score>=80?'score-high':r.score>=60?'score-mid':'score-low';
+    rb.innerHTML += `<tr><td>${r.user}</td><td>${r.unit}</td><td>${r.mode}</td><td><span class="score-pill ${cls}">${r.score}%</span></td><td>${r.date}</td></tr>`;
+  });
+}
+
+document.getElementById('input-name')?.addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('input-pw').focus(); });
+document.getElementById('input-pw')?.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
